@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Битва Ментора - Голосовая Игра</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            overflow: hidden;
+            height: 100vh;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-header {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            text-align: center;
+        }
+
+        .mentor-name {
+            font-size: 1.5rem;
+            color: #f1c40f;
+            text-shadow: 0 0 15px #f1c40f;
+            margin-bottom: 0.5rem;
+        }
+
+        .score {
+            font-size: 1rem;
+            color: #4ecdc4;
+            text-shadow: 0 0 10px #4ecdc4;
+        }
+
+        #gameCanvas {
+            border: 5px solid #4ecdc4;
+            border-radius: 0;
+            box-shadow: 
+                0 0 30px rgba(78, 205, 196, 0.6),
+                inset 0 0 30px rgba(78, 205, 196, 0.2);
+            background: linear-gradient(180deg, #87ceeb 0%, #98fb98 100%);
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .phrase-display {
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #ff6b6b;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+            color: #ff6b6b;
+            text-shadow: 0 0 10px #ff6b6b;
+            border-radius: 0;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mic-status {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .mic-button {
+            font-family: 'Press Start 2P', monospace;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border: 3px solid #fff;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            border-radius: 0;
+        }
+
+        .mic-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.8);
+        }
+
+        .mic-button.active {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .listening {
+            font-size: 0.7rem;
+            color: #95e1d3;
+            text-shadow: 0 0 5px #95e1d3;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 5px solid #f1c40f;
+            padding: 2rem;
+            text-align: center;
+            z-index: 100;
+            display: none;
+            border-radius: 0;
+        }
+
+        .game-over h2 {
+            color: #f1c40f;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            text-shadow: 0 0 15px #f1c40f;
+        }
+
+        .restart-btn {
+            font-family: 'Press Start 2P', monospace;
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            border: 3px solid #fff;
+            padding: 1rem 2rem;
+            cursor: pointer;
+            margin: 0.5rem;
+            font-size: 0.8rem;
+            border-radius: 0;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            .mentor-name {
+                font-size: 1rem;
+            }
+            
+            .score {
+                font-size: 0.8rem;
+            }
+            
+            .phrase-display {
+                font-size: 0.6rem;
+                padding: 0.8rem;
+            }
+            
+            .mic-button {
+                font-size: 0.6rem;
+                padding: 0.6rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="mentor-name" id="mentorName">ВЫБЕРИТЕ МЕНТОРА</div>
+            <div class="score">СЧЕТ: <span id="score">0</span></div>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <div class="controls">
+            <div class="phrase-display" id="phraseDisplay">
+                Кричите фразу чтобы ментор взлетел!
+            </div>
+            <div class="mic-status">
+                <button class="mic-button" id="micButton">🎤 НАЧАТЬ</button>
+                <div class="listening" id="listeningStatus">Нажмите для начала</div>
+            </div>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <h2>ИГРА ОКОНЧЕНА!</h2>
+            <p>Финальный счет: <span id="finalScore">0</span></p>
+            <button class="restart-btn" onclick="restartGame()">🔄 ЗАНОВО</button>
+            <button class="restart-btn" onclick="backToMentors()">⚔️ ВЫБРАТЬ МЕНТОРА</button>
+        </div>
+    </div>
+
+    <script>
+        // Получаем выбранного ментора из URL или localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        let selectedMentor = urlParams.get('mentor') || localStorage.getItem('selectedMentor') || 'bahredin';
+
+        // Данные менторов
+        const mentors = {
+            bahredin: {
+                name: 'БАХРЕДИН',
+                image: 'images/mentors/бахредин.png',
+                color: '#3498db',
+                phrases: ['доска позора ждет', 'код пишу с закрытыми глазами']
+            },
+            alihan: {
+                name: 'АЛИХАН', 
+                image: 'images/mentors/алихан.png',
+                color: '#f39c12',
+                phrases: ['скобочка']
+            },
+            baha: {
+                name: 'БАХА',
+                image: 'images/mentors/баха.png', 
+                color: '#e74c3c',
+                phrases: ['сейчас будет жесткий lifecoding']
+            },
+            shokan: {
+                name: 'ШОКАН',
+                image: 'images/mentors/шокан.png',
+                color: '#9b59b6', 
+                phrases: ['надо подкачаться']
+            }
+        };
+
+        // Общие фразы для всех менторов
+        const commonPhrases = [
+            'контент делаем',
+            'дейлик',
+            'а вот в наше время', 
+            'где прогресс'
+        ];
+
+        // Игровые переменные
+        let canvas, ctx;
+        let mentor, obstacles = [], score = 0;
+        let gameRunning = false, gameSpeed = 2;
+        let currentPhrase = '';
+        let recognition, isListening = false;
+        let particles = [];
+        let jumpEffect = 0;
+        let clouds = [];
+
+        // Инициализация игры
+        function initGame() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Адаптивный размер канваса
+            if (window.innerWidth < 768) {
+                canvas.width = window.innerWidth - 40;
+                canvas.height = window.innerHeight - 200;
+            }
+
+            // Настраиваем ментора
+            const mentorData = mentors[selectedMentor];
+            document.getElementById('mentorName').textContent = mentorData.name;
+            document.getElementById('mentorName').style.color = mentorData.color;
+
+            // Создаем ментора
+            mentor = {
+                x: 100,
+                y: canvas.height / 2,
+                width: 60,
+                height: 60,
+                velocity: 0,
+                gravity: 0.5,
+                jumpPower: -12,
+                image: new Image()
+            };
+            mentor.image.src = mentorData.image;
+
+            // Настраиваем распознавание речи
+            setupSpeechRecognition();
+            
+            // Создаем облака
+            for (let i = 0; i < 5; i++) {
+                clouds.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height / 2,
+                    speed: Math.random() * 0.5 + 0.2,
+                    size: Math.random() * 30 + 20
+                });
+            }
+
+            // Генерируем первое препятствие
+            generateObstacle();
+            
+            // Начинаем игровой цикл
+            gameLoop();
+        }
+
+        function setupSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'ru-RU';
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    document.getElementById('micButton').classList.add('active');
+                    document.getElementById('listeningStatus').textContent = 'Слушаю... 🎤';
+                };
+
+                recognition.onresult = (event) => {
+                    let finalTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript;
+                        }
+                    }
+                    
+                    if (finalTranscript) {
+                        checkPhrase(finalTranscript.toLowerCase());
+                    }
+                };
+
+                recognition.onerror = () => {
+                    document.getElementById('listeningStatus').textContent = 'Ошибка микрофона';
+                };
+
+                recognition.onend = () => {
+                    if (gameRunning && isListening) {
+                        recognition.start(); // Перезапускаем если игра идет
+                    }
+                };
+            } else {
+                document.getElementById('listeningStatus').textContent = 'Речь не поддерживается';
+            }
+        }
+
+        function toggleMic() {
+            const button = document.getElementById('micButton');
+            
+            if (!isListening) {
+                startGame();
+                recognition.start();
+                button.textContent = '🔴 СТОП';
+            } else {
+                stopGame();
+                recognition.stop();
+                button.textContent = '🎤 НАЧАТЬ';
+                button.classList.remove('active');
+                isListening = false;
+            }
+        }
+
+        function startGame() {
+            gameRunning = true;
+            score = 0;
+            obstacles = [];
+            mentor.y = canvas.height / 2;
+            mentor.velocity = 0;
+            generateObstacle();
+            updatePhraseDisplay();
+        }
+
+        function stopGame() {
+            gameRunning = false;
+            document.getElementById('gameOver').style.display = 'block';
+            document.getElementById('finalScore').textContent = score;
+        }
+
+        function generateObstacle() {
+            if (!gameRunning) return;
+
+            // Выбираем случайную фразу
+            const mentorPhrases = mentors[selectedMentor].phrases;
+            const allPhrases = [...mentorPhrases, ...commonPhrases];
+            currentPhrase = allPhrases[Math.floor(Math.random() * allPhrases.length)];
+            
+            // Создаем препятствие
+            obstacles.push({
+                x: canvas.width,
+                y: Math.random() * (canvas.height - 200) + 100,
+                width: 80,
+                height: Math.random() * 150 + 100,
+                passed: false,
+                phrase: currentPhrase
+            });
+
+            updatePhraseDisplay();
+
+            // Генерируем следующее препятствие
+            setTimeout(generateObstacle, 3000 + Math.random() * 2000);
+        }
+
+        function updatePhraseDisplay() {
+            document.getElementById('phraseDisplay').innerHTML = 
+                `<strong>КРИЧИТЕ:</strong><br>"${currentPhrase.toUpperCase()}"`;
+        }
+
+        function checkPhrase(spokenText) {
+            if (!gameRunning) return;
+
+            const phrases = [...mentors[selectedMentor].phrases, ...commonPhrases];
+            
+            for (let phrase of phrases) {
+                if (spokenText.includes(phrase.toLowerCase())) {
+                    mentorJump();
+                    document.getElementById('listeningStatus').textContent = `Услышано: "${phrase}" ✅`;
+                    setTimeout(() => {
+                        if (isListening) {
+                            document.getElementById('listeningStatus').textContent = 'Слушаю... 🎤';
+                        }
+                    }, 1000);
+                    return;
+                }
+            }
+        }
+
+        function mentorJump() {
+            mentor.velocity = mentor.jumpPower;
+            jumpEffect = 10;
+            
+            // Создаем частицы при прыжке
+            for (let i = 0; i < 5; i++) {
+                particles.push({
+                    x: mentor.x + mentor.width / 2,
+                    y: mentor.y + mentor.height,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: Math.random() * 3 + 1,
+                    life: 30,
+                    color: mentors[selectedMentor].color
+                });
+            }
+        }
+
+        function gameLoop() {
+            // Очищаем канвас
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Рисуем движущиеся облака
+            for (let cloud of clouds) {
+                cloud.x -= cloud.speed;
+                if (cloud.x + cloud.size < 0) {
+                    cloud.x = canvas.width + cloud.size;
+                }
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.beginPath();
+                ctx.arc(cloud.x, cloud.y, cloud.size, 0, Math.PI * 2);
+                ctx.arc(cloud.x + cloud.size * 0.5, cloud.y - cloud.size * 0.3, cloud.size * 0.8, 0, Math.PI * 2);
+                ctx.arc(cloud.x - cloud.size * 0.3, cloud.y - cloud.size * 0.2, cloud.size * 0.6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            if (gameRunning) {
+                // Обновляем ментора
+                mentor.velocity += mentor.gravity;
+                mentor.y += mentor.velocity;
+
+                // Границы экрана
+                if (mentor.y < 0) mentor.y = 0;
+                if (mentor.y > canvas.height - mentor.height) {
+                    mentor.y = canvas.height - mentor.height;
+                    mentor.velocity = 0;
+                }
+
+                // Обновляем препятствия
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    let obstacle = obstacles[i];
+                    obstacle.x -= gameSpeed;
+
+                    // Рисуем препятствие с градиентом
+                    const gradient = ctx.createLinearGradient(obstacle.x, 0, obstacle.x + obstacle.width, 0);
+                    gradient.addColorStop(0, '#654321');
+                    gradient.addColorStop(0.5, '#8b4513');
+                    gradient.addColorStop(1, '#a0522d');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(obstacle.x, 0, obstacle.width, obstacle.y);
+                    ctx.fillRect(obstacle.x, obstacle.y + 150, obstacle.width, canvas.height);
+                    
+                    // Добавляем блики
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.fillRect(obstacle.x + 5, 0, 3, obstacle.y);
+                    ctx.fillRect(obstacle.x + 5, obstacle.y + 150, 3, canvas.height);
+
+                    // Проверяем прохождение препятствия
+                    if (!obstacle.passed && obstacle.x + obstacle.width < mentor.x) {
+                        obstacle.passed = true;
+                        score += 10;
+                        document.getElementById('score').textContent = score;
+                        gameSpeed += 0.1; // Увеличиваем скорость
+                    }
+
+                    // Проверяем столкновение
+                    if (checkCollision(mentor, obstacle)) {
+                        stopGame();
+                        return;
+                    }
+
+                    // Удаляем препятствия за экраном
+                    if (obstacle.x + obstacle.width < 0) {
+                        obstacles.splice(i, 1);
+                    }
+                }
+            }
+
+            // Обновляем и рисуем частицы
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let particle = particles[i];
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.life--;
+                
+                if (particle.life <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+                
+                ctx.globalAlpha = particle.life / 30;
+                ctx.fillStyle = particle.color;
+                ctx.fillRect(particle.x, particle.y, 4, 4);
+                ctx.globalAlpha = 1;
+            }
+
+            // Рисуем ментора с эффектом прыжка
+            if (jumpEffect > 0) {
+                ctx.shadowColor = mentors[selectedMentor].color;
+                ctx.shadowBlur = jumpEffect;
+                jumpEffect--;
+            }
+            
+            if (mentor.image.complete) {
+                ctx.drawImage(mentor.image, mentor.x, mentor.y, mentor.width, mentor.height);
+            } else {
+                // Заглушка пока загружается изображение
+                ctx.fillStyle = mentors[selectedMentor].color;
+                ctx.fillRect(mentor.x, mentor.y, mentor.width, mentor.height);
+            }
+            
+            // Сбрасываем тень
+            ctx.shadowBlur = 0;
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function checkCollision(mentor, obstacle) {
+            return mentor.x < obstacle.x + obstacle.width &&
+                   mentor.x + mentor.width > obstacle.x &&
+                   (mentor.y < obstacle.y || mentor.y + mentor.height > obstacle.y + 150);
+        }
+
+        function restartGame() {
+            document.getElementById('gameOver').style.display = 'none';
+            obstacles = [];
+            particles = [];
+            score = 0;
+            gameSpeed = 2;
+            jumpEffect = 0;
+            document.getElementById('score').textContent = score;
+            
+            if (isListening) {
+                startGame();
+            }
+        }
+
+        function backToMentors() {
+            window.location.href = 'mentors_game.html';
+        }
+
+        // События
+        document.getElementById('micButton').addEventListener('click', toggleMic);
+
+        // Запуск игры при загрузке
+        window.addEventListener('load', initGame);
+
+        // Управление клавишами (для тестирования)
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && gameRunning) {
+                e.preventDefault();
+                mentorJump();
+            }
+        });
+    </script>
+</body>
+</html> 

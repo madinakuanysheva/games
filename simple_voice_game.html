@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>КРИК-БИТВА с Ментором</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            overflow: hidden;
+            height: 100vh;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-header {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            text-align: center;
+        }
+
+        .mentor-name {
+            font-size: 1.5rem;
+            color: #f1c40f;
+            text-shadow: 0 0 15px #f1c40f;
+            margin-bottom: 0.5rem;
+        }
+
+        .score {
+            font-size: 1rem;
+            color: #4ecdc4;
+            text-shadow: 0 0 10px #4ecdc4;
+        }
+
+        #gameCanvas {
+            border: 5px solid #4ecdc4;
+            border-radius: 0;
+            box-shadow: 
+                0 0 30px rgba(78, 205, 196, 0.6),
+                inset 0 0 30px rgba(78, 205, 196, 0.2);
+            background: linear-gradient(180deg, #87ceeb 0%, #98fb98 100%);
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .instruction {
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #ff6b6b;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #ff6b6b;
+            text-shadow: 0 0 10px #ff6b6b;
+            border-radius: 0;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .volume-meter {
+            width: 300px;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #4ecdc4;
+            margin: 1rem auto;
+            position: relative;
+            border-radius: 0;
+        }
+
+        .volume-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #f1c40f, #e74c3c);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        .volume-threshold {
+            position: absolute;
+            right: 55%;              /* Была 30% - теперь порог ниже! */
+            top: -5px;
+            bottom: -5px;
+            width: 3px;
+            background: #fff;
+            box-shadow: 0 0 10px #fff;
+        }
+
+        .mic-status {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .mic-button {
+            font-family: 'Press Start 2P', monospace;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border: 3px solid #fff;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            border-radius: 0;
+        }
+
+        .mic-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.8);
+        }
+
+        .mic-button.active {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            animation: buttonPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes buttonPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .status-text {
+            font-size: 0.7rem;
+            color: #95e1d3;
+            text-shadow: 0 0 5px #95e1d3;
+            text-align: center;
+            max-width: 250px;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 5px solid #f1c40f;
+            padding: 2rem;
+            text-align: center;
+            z-index: 100;
+            display: none;
+            border-radius: 0;
+        }
+
+        .game-over h2 {
+            color: #f1c40f;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            text-shadow: 0 0 15px #f1c40f;
+        }
+
+        .restart-btn {
+            font-family: 'Press Start 2P', monospace;
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            border: 3px solid #fff;
+            padding: 1rem 2rem;
+            cursor: pointer;
+            margin: 0.5rem;
+            font-size: 0.8rem;
+            border-radius: 0;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .tips {
+            font-size: 0.6rem;
+            color: #95e1d3;
+            margin-top: 1rem;
+            line-height: 1.4;
+            max-width: 350px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media (max-width: 768px) {
+            .mentor-name {
+                font-size: 1rem;
+            }
+            
+            .score {
+                font-size: 0.8rem;
+            }
+            
+            .instruction {
+                font-size: 0.7rem;
+                padding: 0.8rem;
+            }
+            
+            .volume-meter {
+                width: 250px;
+                height: 25px;
+            }
+            
+            .mic-button {
+                font-size: 0.6rem;
+                padding: 0.6rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="mentor-name" id="mentorName">ВЫБЕРИТЕ МЕНТОРА</div>
+            <div class="score">СЧЕТ: <span id="score">0</span> | ВРЕМЯ: <span id="time">0</span>с</div>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <div class="controls">
+            <div class="instruction" id="instruction">
+                КРИЧИТЕ ГРОМКО! 📢
+            </div>
+            
+            <div class="volume-meter">
+                <div class="volume-bar" id="volumeBar"></div>
+                <div class="volume-threshold"></div>
+            </div>
+            
+            <div class="mic-status">
+                <button class="mic-button" id="micButton">🎤 НАЧАТЬ КРИК-БИТВУ</button>
+                <div class="status-text" id="statusText">Нажмите для начала</div>
+            </div>
+            
+
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <h2>КРИК-БИТВА ОКОНЧЕНА!</h2>
+            <p>Финальный счет: <span id="finalScore">0</span></p>
+            <p>Время выживания: <span id="finalTime">0</span> секунд</p>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                <button class="restart-btn" onclick="restartGame()">🔄 ЗАНОВО</button>
+                <button class="restart-btn" onclick="backToMentors()">⚔️ ВЫБРАТЬ МЕНТОРА</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Получаем выбранного ментора
+        const urlParams = new URLSearchParams(window.location.search);
+        let selectedMentor = urlParams.get('mentor') || localStorage.getItem('selectedMentor') || 'bahredin';
+
+        // Данные менторов
+        const mentors = {
+            bahredin: {
+                name: 'БАХРЕДИН',
+                image: 'images/mentors/бахредин.png',
+                color: '#3498db',
+                phrase: 'КРИЧИ "ДОСКА ПОЗОРА!"'
+            },
+            alihan: {
+                name: 'АЛИХАН', 
+                image: 'images/mentors/алихан.png',
+                color: '#f39c12',
+                phrase: 'КРИЧИ "СКОБОЧКА!"'
+            },
+            baha: {
+                name: 'БАХА',
+                image: 'images/mentors/баха.png', 
+                color: '#e74c3c',
+                phrase: 'КРИЧИ "LIFECODING!"'
+            },
+            shokan: {
+                name: 'ШОКАН',
+                image: 'images/mentors/шокан.png',
+                color: '#9b59b6', 
+                phrase: 'КРИЧИ "ПОДКАЧАТЬСЯ!"'
+            }
+        };
+
+        // Игровые переменные
+        let canvas, ctx;
+        let mentor, obstacles = [], score = 0, gameTime = 0;
+        let gameRunning = false, gameSpeed = 2;
+        let audioContext, microphone, analyser;
+        let isListening = false;
+        let particles = [], clouds = [];
+        let jumpEffect = 0;
+        let gameStartTime;
+        let lastJumpTime = 0;
+
+        // === 1. ФОН ===
+        let bgImage = new Image();
+        bgImage.src = 'images/mentors/location2.png';
+
+        // === 2. Порог громкости ===
+        const VOLUME_THRESHOLD = 100; // Было 60, теперь громче!
+        const OBSTACLE_COUNT = 5; // Ровно 5 препятствий за игру
+        let obstaclesGenerated = 0;
+        const JUMP_COOLDOWN = 200; // Миллисекунды между прыжками
+
+        // Инициализация игры
+        function initGame() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Адаптивный размер канваса
+            if (window.innerWidth < 768) {
+                canvas.width = window.innerWidth - 40;
+                canvas.height = window.innerHeight - 250;
+            }
+
+            // Настраиваем ментора
+            const mentorData = mentors[selectedMentor];
+            document.getElementById('mentorName').textContent = mentorData.name;
+            document.getElementById('mentorName').style.color = mentorData.color;
+            document.getElementById('instruction').innerHTML = mentorData.phrase + '<br>ИЛИ ЛЮБЫЕ ГРОМКИЕ ЗВУКИ! 📢';
+
+            // Создаем ментора - ЛЕГЧЕ ЛЕТАТЬ!
+            mentor = {
+                x: 100,
+                y: canvas.height / 2,
+                width: 60,
+                height: 60,
+                velocity: 0,
+                gravity: 0.3,        // Была 0.5 - теперь легче!
+                jumpPower: -15,      // Был -12 - теперь сильнее прыжок!
+                image: new Image()
+            };
+            mentor.image.src = mentorData.image;
+
+            // Создаем облака
+            for (let i = 0; i < 5; i++) {
+                clouds.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height / 2,
+                    speed: Math.random() * 0.5 + 0.2,
+                    size: Math.random() * 30 + 20
+                });
+            }
+
+            // Начинаем игровой цикл
+            gameLoop();
+        }
+
+        async function setupMicrophone() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                microphone = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                
+                microphone.connect(analyser);
+                
+                return true;
+            } catch (error) {
+                console.error('Ошибка доступа к микрофону:', error);
+                document.getElementById('statusText').textContent = 'Ошибка микрофона!';
+                return false;
+            }
+        }
+
+        function getVolumeLevel() {
+            if (!analyser) return 0;
+            
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteFrequencyData(dataArray);
+            
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+                sum += dataArray[i];
+            }
+            
+            return sum / bufferLength;
+        }
+
+        async function toggleMic() {
+            const button = document.getElementById('micButton');
+            
+            if (!isListening) {
+                const micOk = await setupMicrophone();
+                if (!micOk) return;
+                
+                startGame();
+                isListening = true;
+                button.textContent = '🔴 СТОП КРИК-БИТВА';
+                button.classList.add('active');
+                document.getElementById('statusText').textContent = 'КРИЧИТЕ ГРОМКО! 📢';
+            } else {
+                stopGame();
+                isListening = false;
+                button.textContent = '🎤 НАЧАТЬ КРИК-БИТВУ';
+                button.classList.remove('active');
+                document.getElementById('statusText').textContent = 'Нажмите для начала';
+            }
+        }
+
+        function startGame() {
+            gameRunning = true;
+            score = 0;
+            gameTime = 0;
+            gameStartTime = Date.now();
+            lastJumpTime = 0;              // Сбрасываем время последнего прыжка
+            obstacles = [];
+            particles = [];
+            mentor.y = canvas.height / 2;
+            mentor.velocity = 0;
+            jumpEffect = 0;
+            obstaclesGenerated = 0;
+            
+            document.getElementById('score').textContent = score;
+            document.getElementById('time').textContent = gameTime;
+            
+            generateObstacle();
+        }
+
+        function stopGame() {
+            gameRunning = false;
+            document.getElementById('gameOver').style.display = 'block';
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalTime').textContent = Math.floor(gameTime);
+        }
+
+        function generateObstacle() {
+            if (!gameRunning) return;
+            if (obstaclesGenerated >= OBSTACLE_COUNT) return;
+            obstacles.push({
+                x: canvas.width,
+                y: Math.random() * (canvas.height - 200) + 100,
+                width: 80,
+                height: Math.random() * 150 + 100,
+                passed: false
+            });
+            obstaclesGenerated++;
+            if (obstaclesGenerated < OBSTACLE_COUNT) {
+                setTimeout(generateObstacle, 2000 + Math.random() * 1000);
+            }
+        }
+
+        function mentorJump() {
+            mentor.velocity = mentor.jumpPower;
+            jumpEffect = 10;
+            
+            // Создаем частицы при прыжке
+            for (let i = 0; i < 5; i++) {
+                particles.push({
+                    x: mentor.x + mentor.width / 2,
+                    y: mentor.y + mentor.height,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: Math.random() * 3 + 1,
+                    life: 30,
+                    color: mentors[selectedMentor].color
+                });
+            }
+        }
+
+        function gameLoop() {
+            // === ФОН ===
+            if (bgImage.complete) {
+                ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.fillStyle = '#87ceeb';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // Рисуем движущиеся облака
+            for (let cloud of clouds) {
+                cloud.x -= cloud.speed;
+                if (cloud.x + cloud.size < 0) {
+                    cloud.x = canvas.width + cloud.size;
+                }
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.beginPath();
+                ctx.arc(cloud.x, cloud.y, cloud.size, 0, Math.PI * 2);
+                ctx.arc(cloud.x + cloud.size * 0.5, cloud.y - cloud.size * 0.3, cloud.size * 0.8, 0, Math.PI * 2);
+                ctx.arc(cloud.x - cloud.size * 0.3, cloud.y - cloud.size * 0.2, cloud.size * 0.6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            if (gameRunning) {
+                // Обновляем время
+                gameTime = (Date.now() - gameStartTime) / 1000;
+                document.getElementById('time').textContent = Math.floor(gameTime);
+
+                // Проверяем уровень громкости
+                const volume = getVolumeLevel();
+                const volumePercent = Math.min((volume / 255) * 100, 100);
+                document.getElementById('volumeBar').style.width = volumePercent + '%';
+                
+                // Прыжок если громко кричат (с защитой от спама)
+                const currentTime = Date.now();
+                if (volume > VOLUME_THRESHOLD && currentTime - lastJumpTime > JUMP_COOLDOWN) {
+                    mentorJump();
+                    lastJumpTime = currentTime;
+                }
+
+                // Обновляем ментора
+                mentor.velocity += mentor.gravity;
+                mentor.y += mentor.velocity;
+
+                // Границы экрана
+                if (mentor.y < 0) mentor.y = 0;
+                if (mentor.y > canvas.height - mentor.height) {
+                    mentor.y = canvas.height - mentor.height;
+                    mentor.velocity = 0;
+                }
+
+                // Обновляем препятствия
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    let obstacle = obstacles[i];
+                    obstacle.x -= gameSpeed;
+
+                    // Рисуем препятствие
+                    const gradient = ctx.createLinearGradient(obstacle.x, 0, obstacle.x + obstacle.width, 0);
+                    gradient.addColorStop(0, '#654321');
+                    gradient.addColorStop(0.5, '#8b4513');
+                    gradient.addColorStop(1, '#a0522d');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(obstacle.x, 0, obstacle.width, obstacle.y);
+                    ctx.fillRect(obstacle.x, obstacle.y + 150, obstacle.width, canvas.height);
+
+                    // Проверяем прохождение препятствия
+                    if (!obstacle.passed && obstacle.x + obstacle.width < mentor.x) {
+                        obstacle.passed = true;
+                        score += 10;
+                        document.getElementById('score').textContent = score;
+                        gameSpeed += 0.1; // Увеличиваем скорость
+                    }
+
+                    // Проверяем столкновение
+                    if (checkCollision(mentor, obstacle)) {
+                        stopGame();
+                        return;
+                    }
+
+                    // Удаляем препятствия за экраном
+                    if (obstacle.x + obstacle.width < 0) {
+                        obstacles.splice(i, 1);
+                    }
+                }
+            }
+
+            // Обновляем и рисуем частицы
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let particle = particles[i];
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.life--;
+                
+                if (particle.life <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+                
+                ctx.globalAlpha = particle.life / 30;
+                ctx.fillStyle = particle.color;
+                ctx.fillRect(particle.x, particle.y, 4, 4);
+                ctx.globalAlpha = 1;
+            }
+
+            // Рисуем ментора с эффектом прыжка
+            if (jumpEffect > 0) {
+                ctx.shadowColor = mentors[selectedMentor].color;
+                ctx.shadowBlur = jumpEffect;
+                jumpEffect--;
+            }
+            
+            if (mentor.image.complete) {
+                ctx.drawImage(mentor.image, mentor.x, mentor.y, mentor.width, mentor.height);
+            } else {
+                ctx.fillStyle = mentors[selectedMentor].color;
+                ctx.fillRect(mentor.x, mentor.y, mentor.width, mentor.height);
+            }
+            
+            ctx.shadowBlur = 0;
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function checkCollision(mentor, obstacle) {
+            return mentor.x < obstacle.x + obstacle.width &&
+                   mentor.x + mentor.width > obstacle.x &&
+                   (mentor.y < obstacle.y || mentor.y + mentor.height > obstacle.y + 150);
+        }
+
+        function restartGame() {
+            document.getElementById('gameOver').style.display = 'none';
+            if (isListening) {
+                startGame();
+            }
+        }
+
+        function backToMentors() {
+            window.location.href = 'mentors_game.html';
+        }
+
+        // События
+        document.getElementById('micButton').addEventListener('click', toggleMic);
+
+        // Запуск игры при загрузке
+        window.addEventListener('load', initGame);
+
+        // Управление пробелом (для тестирования без микрофона)
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && gameRunning) {
+                e.preventDefault();
+                mentorJump();
+            }
+        });
+    </script>
+</body>
+</html> 

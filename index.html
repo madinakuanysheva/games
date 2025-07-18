@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Определитель Камней 3000</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            font-family: 'Press Start 2P', cursive;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .game-container {
+            background: #1a1a1a;
+            border: 4px solid #fff;
+            border-radius: 0;
+            max-width: 800px;
+            width: 100%;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 
+                0 0 0 4px #000,
+                0 0 0 8px #fff,
+                0 0 20px rgba(0,0,0,0.8);
+            image-rendering: pixelated;
+        }
+
+        .title {
+            font-size: 20px;
+            color: #f39c12;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px #000;
+            animation: blink 2s infinite;
+        }
+        
+        .subtitle {
+            font-size: 10px;
+            color: #3498db;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px #000;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.7; }
+        }
+
+        .intro-text {
+            font-size: 12px;
+            line-height: 20px;
+            margin-bottom: 30px;
+            color: #ecf0f1;
+            text-shadow: 1px 1px #000;
+            padding: 20px;
+            background: #2c3e50;
+            border: 2px solid #3498db;
+        }
+
+        .game-area {
+            margin: 30px 0;
+            display: none;
+        }
+
+        .score {
+            font-size: 14px;
+            color: #2ecc71;
+            margin-bottom: 20px;
+        }
+
+        .stone-display {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            border: 3px solid #fff;
+            background: #000;
+            position: relative;
+            image-rendering: pixelated;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .stone {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            border-radius: 0;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+
+        .sapphire {
+            background-image: url('images/stones/sapphire.png');
+        }
+
+        .amber {
+            background-image: url('images/stones/amber.png');
+        }
+
+        .emerald {
+            background-image: url('images/stones/emerald.png');
+        }
+
+        .brick {
+            background-image: url('images/stones/brick.png');
+        }
+
+        .input-area {
+            margin: 30px 0;
+        }
+
+        .input-label {
+            font-size: 12px;
+            color: #f1c40f;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .stone-input {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            padding: 15px;
+            border: 3px solid #fff;
+            background: #000;
+            color: #fff;
+            width: 300px;
+            max-width: 100%;
+            text-align: center;
+            outline: none;
+            image-rendering: pixelated;
+        }
+
+        .stone-input:focus {
+            border-color: #f39c12;
+            box-shadow: 0 0 10px #f39c12;
+        }
+
+        .submit-btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            padding: 15px 30px;
+            margin: 20px 10px;
+            border: 3px solid #fff;
+            background: #2ecc71;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            image-rendering: pixelated;
+        }
+
+        .submit-btn:hover {
+            background: #27ae60;
+            transform: scale(1.05);
+        }
+
+        .start-btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            padding: 20px 40px;
+            border: 3px solid #fff;
+            background: #e74c3c;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .start-btn:hover {
+            background: #c0392b;
+        }
+
+
+
+        .final-message {
+            font-size: 16px;
+            color: #f39c12;
+            margin: 30px 0;
+            padding: 30px;
+            border: 3px solid #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+            display: none;
+            animation: finalGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes finalGlow {
+            0%, 100% { box-shadow: 0 0 10px #f39c12; }
+            50% { box-shadow: 0 0 20px #f39c12; }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Диалоговая система */
+        .dialog-section {
+            margin: 30px 0;
+        }
+
+        .character-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            min-height: 300px;
+        }
+
+        .actor-image {
+            width: 150px;
+            height: auto;
+            max-height: 200px;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            border: 3px solid #fff;
+            background: #000;
+            animation: bobbing 3s ease-in-out infinite;
+        }
+
+        @keyframes bobbing {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .speech-bubble {
+            position: relative;
+            background: #fff;
+            color: #000;
+            padding: 20px 25px;
+            border: 3px solid #000;
+            border-radius: 0;
+            max-width: 400px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            box-shadow: 
+                0 0 0 3px #fff,
+                0 0 0 6px #000;
+            animation: textAppear 0.8s ease-out;
+        }
+
+        @keyframes textAppear {
+            0% { 
+                opacity: 0; 
+                transform: scale(0.8) translateY(-20px); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: scale(1) translateY(0px); 
+            }
+        }
+
+        .bubble-arrow {
+            position: absolute;
+            bottom: -15px;
+            left: 30px;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 15px solid #000;
+        }
+
+        .bubble-arrow::before {
+            content: '';
+            position: absolute;
+            top: -18px;
+            left: -12px;
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 12px solid #fff;
+        }
+
+        .dialog-text {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+            line-height: 18px;
+            text-align: left;
+        }
+
+        .dialog-btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            padding: 15px 30px;
+            border: 3px solid #fff;
+            background: #3498db;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            animation: pulse 2s infinite;
+        }
+
+        .dialog-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title">ОПРЕДЕЛИТЕЛЬ КАМНЕЙ 3000™</h1>
+        <div class="subtitle">УРОВЕНЬ 1: РАБОТА → ТАНЦЫ</div>
+        
+                <!-- Диалоговая система с персонажем -->
+        <div id="dialogSection" class="dialog-section">
+            <div class="character-container">
+                <img id="actorImage" src="images/actor/ChatGPT Image Jul 18, 2025, 12_11_53 AM.png" alt="Персонаж" class="actor-image">
+                <div class="speech-bubble">
+                    <div id="dialogText" class="dialog-text"></div>
+                    <div class="bubble-arrow"></div>
+                </div>
+            </div>
+            <button id="nextDialogBtn" class="dialog-btn" onclick="nextDialog()">
+                ДАЛЕЕ
+            </button>
+        </div>
+
+        <div id="intro" class="intro-section" style="display: none;">
+            <button class="start-btn" onclick="startGame()">
+                НАЧАТЬ МИССИЮ!
+            </button>
+        </div>
+
+        <div id="gameArea" class="game-area">
+            <div class="score">
+                💎 КАМЕНЬ #<span id="currentStone">1</span> из <span id="totalStones">4</span> 💎
+            </div>
+            
+            <div class="stone-display">
+                <div id="stoneImage" class="stone sapphire"></div>
+            </div>
+            
+            <div class="input-area">
+                <label class="input-label">
+                    ЧТО ЭТО ЗА КАМЕНЬ, ЭКСПЕРТ?
+                </label>
+                <input 
+                    type="text" 
+                    id="stoneGuess" 
+                    class="stone-input" 
+                    placeholder="Введи название камня..."
+                    onkeypress="checkEnter(event)"
+                >
+                <br>
+                <button class="submit-btn" onclick="checkAnswer()">
+                    ОТПРАВИТЬ ОТВЕТ!
+                </button>
+            </div>
+            
+
+        </div>
+
+        <div id="finalMessage" class="final-message">
+            🎉 МОЛОДЕЦ! ТЫ ПОМОГ ЭТОМУ БЕДНЯГЕ ОПРЕДЕЛИТЬ ВСЕ КАМНИ! 🎉<br><br>
+        
+            
+            💰 СТАТУС: МИЛЛИОНЕР! 💰<br><br>
+            
+            <button class="submit-btn" onclick="nextLevel()">
+                ПЕРЕЙТИ НА СЛЕДУЮЩИЙ УРОВЕНЬ!
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const stones = [
+            { class: 'sapphire', name: 'Сапфир' },
+            { class: 'amber', name: 'Янтарь' },
+            { class: 'emerald', name: 'Изумруд' },
+            { class: 'brick', name: 'Кирпич' }
+        ];
+
+        // Диалоги персонажа
+        const dialogs = [
+            "Привет! Меня зовут Ербол Копжасар! 👋",
+            "Мы с командой хотим заработать миллион долларов! 💰",
+            "Есть одно НО. Мы потратили все деньги на аренду офиса и пиццу, а на ИИ для определения камней денег не хватило! 🍕",
+            "Поэтому мы наняли 1000 индусов и... ТЕБЯ! 🎯",
+            "Твоя миссия: помоги определить, что за камень на картинке! 💎",
+        ];
+
+        let currentStoneIndex = 0;
+        let currentDialogIndex = 0;
+        let gameStarted = false;
+
+        function startGame() {
+            document.getElementById('intro').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            gameStarted = true;
+            showNextStone();
+        }
+
+        function showNextStone() {
+            if (currentStoneIndex < stones.length) {
+                const stone = stones[currentStoneIndex];
+                const stoneElement = document.getElementById('stoneImage');
+                
+                // Очищаем предыдущие классы
+                stoneElement.className = 'stone';
+                
+                // Добавляем новый класс камня
+                setTimeout(() => {
+                    stoneElement.classList.add(stone.class);
+                }, 100);
+                
+                document.getElementById('currentStone').textContent = currentStoneIndex + 1;
+                document.getElementById('stoneGuess').value = '';
+                document.getElementById('stoneGuess').focus();
+            }
+        }
+
+        function checkAnswer() {
+            const guess = document.getElementById('stoneGuess').value.trim();
+            
+            if (guess.length === 0) {
+                alert('Введи хотя бы что-то, эксперт!');
+                return;
+            }
+
+            currentStoneIndex++;
+            
+            if (currentStoneIndex >= stones.length) {
+                // Игра закончена - показываем финальное сообщение
+                document.getElementById('gameArea').style.display = 'none';
+                document.getElementById('finalMessage').style.display = 'block';
+            } else {
+                // Переходим к следующему камню сразу
+                showNextStone();
+            }
+        }
+
+        function checkEnter(event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        }
+
+        function nextLevel() {
+            // Переход к основной игре Armansu Dance!
+            console.log('🎮 Переход к Armansu Dance!');
+            
+            // Показываем красивое сообщение о переходе
+            const gameContainer = document.querySelector('.game-container');
+            gameContainer.innerHTML = `
+                <div class="transition-screen">
+                    <h1 style="color: #f39c12; margin-bottom: 30px; animation: blink 1s infinite;">
+                        🎉 МИССИЯ ВЫПОЛНЕНА! 🎉
+                    </h1>
+                    <p style="font-size: 14px; margin-bottom: 20px; color: #ecf0f1;">
+                        Отличная работа, эксперт по камням! 💎
+                    </p>
+                    <p style="font-size: 12px; margin-bottom: 30px; color: #3498db;">
+                        Теперь пора расслабиться и потанцевать! 🕺💃
+                    </p>
+                    <div style="font-size: 16px; color: #e74c3c; margin-bottom: 20px;">
+                        Загрузка Armansu Dance...
+                    </div>
+                    <div class="loading-bar" style="
+                        width: 100%; 
+                        height: 20px; 
+                        background: #2c3e50; 
+                        border: 2px solid #fff; 
+                        margin-bottom: 20px;
+                        position: relative;
+                        overflow: hidden;
+                    ">
+                        <div class="progress" style="
+                            width: 0%; 
+                            height: 100%; 
+                            background: linear-gradient(90deg, #e74c3c, #f39c12); 
+                            animation: loading 3s ease-in-out forwards;
+                        "></div>
+                    </div>
+                </div>
+                <style>
+                    @keyframes loading {
+                        0% { width: 0%; }
+                        100% { width: 100%; }
+                    }
+                </style>
+            `;
+            
+            // Через 3 секунды переходим к танцевальной игре
+            setTimeout(() => {
+                window.location.href = 'dance.html';
+            }, 3000);
+        }
+        
+        function restartForTesting() {
+            // Функция для тестирования (можно удалить при интеграции с основной игрой)
+            currentStoneIndex = 0;
+            document.getElementById('finalMessage').style.display = 'none';
+            document.getElementById('intro').style.display = 'block';
+            gameStarted = false;
+        }
+
+        // Диалоговая система
+        function initializeDialog() {
+            console.log('Инициализация диалогов...');
+            currentDialogIndex = 0;
+            showDialog();
+        }
+
+        function showDialog() {
+            console.log('Показываю диалог №', currentDialogIndex);
+            const dialogText = document.getElementById('dialogText');
+            const nextBtn = document.getElementById('nextDialogBtn');
+            
+            if (currentDialogIndex < dialogs.length) {
+                // Показываем текст сразу
+                dialogText.textContent = dialogs[currentDialogIndex];
+                
+                // Изменяем текст кнопки на последнем диалоге
+                if (currentDialogIndex === dialogs.length - 1) {
+                    nextBtn.textContent = 'НАЧАТЬ МИССИЮ!';
+                    nextBtn.style.background = '#e74c3c';
+                } else {
+                    nextBtn.textContent = 'ДАЛЕЕ';
+                    nextBtn.style.background = '#3498db';
+                }
+            }
+        }
+
+        function nextDialog() {
+            console.log('Переход к следующему диалогу...');
+            if (currentDialogIndex < dialogs.length - 1) {
+                currentDialogIndex++;
+                showDialog();
+            } else {
+                // Переход к игре
+                document.getElementById('dialogSection').style.display = 'none';
+                document.getElementById('intro').style.display = 'block';
+            }
+        }
+
+        function startGame() {
+            document.getElementById('intro').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            gameStarted = true;
+            showNextStone();
+        }
+
+        // Инициализация диалогов при загрузке
+        window.onload = function() {
+            console.log('Страница загружена, запускаю диалоги...');
+            initializeDialog();
+        };
+    </script>
+</body>
+</html> 

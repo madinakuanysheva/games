@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Armansu Dance - Простая версия</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Главный экран -->
+        <div id="mainScreen" class="screen active">
+            <div class="game-title">
+                <h1>🕺 ARMANSU DANCE 🕺</h1>
+                <p>Время танцевать после работы!</p>
+                <p style="font-size: 0.8rem; color: #95e1d3; margin-top: 1rem;">
+                    Уровень 2: Танцевальная пауза
+                </p>
+                <p style="font-size: 0.6rem; color: #f39c12; margin-top: 0.5rem;">
+                    Далее: Битва с менторами! ⚔️
+                </p>
+            </div>
+            <div class="main-buttons" style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                <button id="startButton" class="btn btn-primary">
+                    🎮 НАЧАТЬ ТАНЕЦ
+                </button>
+                <button id="backToMiniGame" class="btn btn-secondary">
+                    💎 НАЗАД К КАМНЯМ
+                </button>
+            </div>
+        </div>
+
+        <!-- Экран игры -->
+        <div id="gameScreen" class="screen">
+            <div class="game-header">
+                <h2>ТАНЦУЙ ВМЕСТЕ С АРМАНОМ!</h2>
+                <div id="countdown" class="countdown"></div>
+            </div>
+            
+            <div class="game-area">
+                <!-- Камера пользователя -->
+                <div class="camera-container">
+                    <video id="userCamera" autoplay muted playsinline></video>
+                    <div class="camera-label">ВЫ</div>
+                </div>
+                
+                <!-- Танцевальное видео -->
+                <div class="dance-video-container">
+                    <video id="danceVideo" playsinline>
+                        <source src="video/dance-video.mp4" type="video/mp4">
+                        Ваш браузер не поддерживает видео.
+                    </video>
+                    <div class="video-label">ТАНЕЦ АРМАНА</div>
+                </div>
+            </div>
+            
+            <div class="game-controls">
+                <button id="pauseButton" class="btn btn-secondary">⏸️ ПАУЗА</button>
+            </div>
+        </div>
+
+        <!-- Экран результатов -->
+        <div id="resultsScreen" class="screen">
+            <div class="results-content">
+                <h1>🎉 ОТЛИЧНО! 🎉</h1>
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="score-text">ТЫ НАСТОЯЩИЙ ТАНЦОР!</p>
+                <p class="motivational-text">ПРОДОЛЖАЙ ТАНЦЕВАТЬ!</p>
+                
+                <div class="results-buttons" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                    <button id="playAgainButton" class="btn btn-primary">
+                        🔄 ТАНЦЕВАТЬ СНОВА
+                    </button>
+                    <button id="nextLevelButton" class="btn btn-primary">
+                        ⚔️ ВЫБРАТЬ МЕНТОРА
+                    </button>
+                    <button id="quickCryButton" class="btn btn-primary">
+                        📢 КРИК-БИТВА
+                    </button>
+                    <button id="backToMenuButton" class="btn btn-secondary">
+                        🏠 В МЕНЮ
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран ошибки камеры -->
+        <div id="cameraErrorScreen" class="screen">
+            <div class="error-content">
+                <h2>❌ КАМЕРА НЕДОСТУПНА</h2>
+                <p>РАЗРЕШИТЕ ДОСТУП К КАМЕРЕ ДЛЯ ИГРЫ</p>
+                <button id="retryCamera" class="btn btn-primary">
+                    🔄 ПОПРОБОВАТЬ СНОВА
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 

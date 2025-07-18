@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбери своего бойца - Менторы</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            overflow: hidden;
+            height: 100vh;
+            color: #fff;
+            position: relative;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Фон локации */
+        .location-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('images/mentors/location.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.3;
+            z-index: 1;
+        }
+
+        .game-container {
+            position: relative;
+            z-index: 2;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            color: #ff6b6b;
+            text-shadow: 
+                0 0 10px #ff6b6b,
+                0 0 20px #ff6b6b,
+                0 0 30px #ff6b6b;
+            margin-bottom: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+            text-align: center;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #4ecdc4;
+            text-shadow: 0 0 15px #4ecdc4;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .mentors-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .mentor-card {
+            background: rgba(0, 0, 0, 0.8);
+            border: 5px solid #4ecdc4;
+            border-radius: 0;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 0 20px rgba(78, 205, 196, 0.6),
+                inset 0 0 20px rgba(78, 205, 196, 0.2);
+            animation: cardGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes cardGlow {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 20px rgba(78, 205, 196, 0.6),
+                    inset 0 0 20px rgba(78, 205, 196, 0.2);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 30px rgba(78, 205, 196, 0.9),
+                    inset 0 0 30px rgba(78, 205, 196, 0.4);
+            }
+        }
+
+        .mentor-card:hover {
+            transform: scale(1.05);
+            border-color: #ff6b6b;
+            box-shadow: 
+                0 0 40px rgba(255, 107, 107, 1),
+                inset 0 0 40px rgba(255, 107, 107, 0.4);
+        }
+
+        .mentor-card.bahredin {
+            border-color: #3498db;
+            box-shadow: 
+                0 0 20px rgba(52, 152, 219, 0.6),
+                inset 0 0 20px rgba(52, 152, 219, 0.2);
+        }
+
+        .mentor-card.baha {
+            border-color: #e74c3c;
+            box-shadow: 
+                0 0 20px rgba(231, 76, 60, 0.6),
+                inset 0 0 20px rgba(231, 76, 60, 0.2);
+        }
+
+        .mentor-card.alihan {
+            border-color: #f39c12;
+            box-shadow: 
+                0 0 20px rgba(243, 156, 18, 0.6),
+                inset 0 0 20px rgba(243, 156, 18, 0.2);
+        }
+
+        .mentor-card.shokan {
+            border-color: #9b59b6;
+            box-shadow: 
+                0 0 20px rgba(155, 89, 182, 0.6),
+                inset 0 0 20px rgba(155, 89, 182, 0.2);
+        }
+
+        .mentor-image {
+            width: 120px;
+            height: 120px;
+            border: 3px solid #fff;
+            border-radius: 0;
+            margin: 0 auto 1rem auto;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .mentor-name {
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px #000;
+        }
+
+        .mentor-role {
+            font-size: 0.8rem;
+            color: #95e1d3;
+            margin-bottom: 0.8rem;
+            text-shadow: 1px 1px #000;
+        }
+
+        .mentor-description {
+            font-size: 0.6rem;
+            line-height: 1.4;
+            color: #ecf0f1;
+            text-shadow: 1px 1px #000;
+            text-align: left;
+        }
+
+        /* Специальные стили для каждого ментора */
+        .mentor-card.bahredin .mentor-image {
+            background-image: url('images/mentors/бахредин.png');
+        }
+
+        .mentor-card.baha .mentor-image {
+            background-image: url('images/mentors/баха.png');
+        }
+
+        .mentor-card.alihan .mentor-image {
+            background-image: url('images/mentors/алихан.png');
+        }
+
+        .mentor-card.shokan .mentor-image {
+            background-image: url('images/mentors/шокан.png');
+        }
+
+        /* Эффект выбора */
+        .mentor-card.selected {
+            border-color: #f1c40f;
+            transform: scale(1.1);
+            box-shadow: 
+                0 0 50px rgba(241, 196, 15, 1),
+                inset 0 0 50px rgba(241, 196, 15, 0.5);
+            animation: selectedPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes selectedPulse {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 50px rgba(241, 196, 15, 1),
+                    inset 0 0 50px rgba(241, 196, 15, 0.5);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 70px rgba(241, 196, 15, 1),
+                    inset 0 0 70px rgba(241, 196, 15, 0.7);
+            }
+        }
+
+        .continue-btn {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1.2rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, #f1c40f, #f39c12);
+            color: #000;
+            border: 3px solid #fff;
+            border-radius: 0;
+            cursor: pointer;
+            margin-top: 2rem;
+            transition: all 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+            text-transform: uppercase;
+            animation: btnAppear 1s ease-out forwards;
+        }
+
+        .continue-btn.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .continue-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 
+                0 0 20px rgba(241, 196, 15, 0.8),
+                inset 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes btnAppear {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 1.8rem;
+            }
+            
+            .subtitle {
+                font-size: 0.8rem;
+            }
+            
+            .mentors-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                max-width: 400px;
+            }
+            
+            .mentor-card {
+                padding: 1rem;
+            }
+            
+            .mentor-image {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .mentor-name {
+                font-size: 1rem;
+            }
+            
+            .mentor-role {
+                font-size: 0.7rem;
+            }
+            
+            .mentor-description {
+                font-size: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 1.4rem;
+            }
+            
+            .mentors-grid {
+                max-width: 300px;
+            }
+            
+            .mentor-image {
+                width: 80px;
+                height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="location-bg"></div>
+    
+    <div class="game-container">
+        <h1 class="title">⚔️ ВЫБЕРИ СВОЕГО БОЙЦА ⚔️</h1>
+        <p class="subtitle">УРОВЕНЬ 3: БИТВА МЕНТОРОВ</p>
+        
+        <div class="mentors-grid">
+            <!-- Бахредин -->
+            <div class="mentor-card bahredin" data-mentor="bahredin">
+                <div class="mentor-image"></div>
+                <div class="mentor-name">БАХРЕДИН</div>
+                <div class="mentor-role">🎨 МАСТЕР ФРОНТЕНДА</div>
+                <div class="mentor-description">
+                    Жесткий фронтендер. Пишет код с закрытыми глазами, даже во сне.<br><br>
+                    При людях скромничает, но в одиночку может переписать весь интерфейс за ночь.
+                </div>
+            </div>
+            
+            <!-- Баха -->
+            <div class="mentor-card baha" data-mentor="baha">
+                <div class="mentor-image"></div>
+                <div class="mentor-name">БАХА</div>
+                <div class="mentor-role">⚙️ КОРОЛЬ БЭКЕНДА</div>
+                <div class="mentor-description">
+                    Второе имя бэкендер.<br><br>
+                    Можешь даже не писать - он уже закончил.
+                </div>
+            </div>
+            
+            <!-- Алихан -->
+            <div class="mentor-card alihan" data-mentor="alihan">
+                <div class="mentor-image"></div>
+                <div class="mentor-name">АЛИХАН</div>
+                <div class="mentor-role">📱 ВЛАСТЕЛИН iOS</div>
+                <div class="mentor-description">
+                    iOS знаете? он сделал.<br><br>
+                    В соло тащит всю iOS банду инкубатора.
+                </div>
+            </div>
+            
+            <!-- Шокан -->
+            <div class="mentor-card shokan" data-mentor="shokan">
+                <div class="mentor-image"></div>
+                <div class="mentor-name">ШОКАН</div>
+                <div class="mentor-role">👑 СТАРШИЙ ВОИН</div>
+                <div class="mentor-description">
+                    Уважает фронтенд, как старший в роду.<br><br>
+                    Говорит мало, но когда говорит — ты переписываешь всё.
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; margin-top: 2rem;">
+            <button class="continue-btn" id="continueBtn">
+                🚀 НАЧАТЬ БИТВУ!
+            </button>
+            
+            <button class="continue-btn" id="backBtn" style="
+                background: linear-gradient(45deg, #95e1d3, #4ecdc4);
+                opacity: 1;
+                pointer-events: all;
+            ">
+                🕺 НАЗАД К ТАНЦАМ
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let selectedMentor = null;
+        const continueBtn = document.getElementById('continueBtn');
+        const backBtn = document.getElementById('backBtn');
+        const mentorCards = document.querySelectorAll('.mentor-card');
+
+        // Обработчики выбора ментора
+        mentorCards.forEach(card => {
+            card.addEventListener('click', () => {
+                // Убираем выделение с других карточек
+                mentorCards.forEach(c => c.classList.remove('selected'));
+                
+                // Выделяем выбранную карточку
+                card.classList.add('selected');
+                selectedMentor = card.dataset.mentor;
+                
+                // Показываем кнопку продолжения
+                continueBtn.classList.add('visible');
+                
+                console.log(`Выбран ментор: ${selectedMentor}`);
+            });
+        });
+
+        // Переход к следующему этапу
+        continueBtn.addEventListener('click', () => {
+            if (selectedMentor) {
+                console.log(`Начинаем битву с ментором: ${selectedMentor}`);
+                
+                // Сохраняем выбранного ментора и переходим к простой крик-игре
+                localStorage.setItem('selectedMentor', selectedMentor);
+                window.location.href = `simple_voice_game.html?mentor=${selectedMentor}`;
+            }
+        });
+
+        // Возврат к танцевальной игре
+        backBtn.addEventListener('click', () => {
+            window.location.href = 'dance.html';
+        });
+
+        // Эффект появления карточек
+        window.addEventListener('load', () => {
+            mentorCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.animation = `cardGlow 3s ease-in-out infinite, btnAppear 0.8s ease-out forwards`;
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html> 
